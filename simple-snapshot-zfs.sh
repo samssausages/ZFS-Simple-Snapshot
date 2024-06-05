@@ -1,4 +1,5 @@
 #!/bin/bash
+#arrayStarted=true
 
 #v0.9
 ########################simple-snapshot-zfs#######################
@@ -6,6 +7,9 @@
 # List your ZFS datasets.  You can add/remove sets
 # readarray -t DATASETS < <(zfs list -o name -H)  # when replacing DATASETS below, should return all pools/Datasets, not thoroughly tested yet.  If you test this let me know!
 DATASETS=("workpool/admin" "workpool/archive")
+
+# Set as true to take snapshots of all datasets within the datasets listed above
+RECURSIVE=false
 
 # Set Number of Snapshots to Keep
 SHANPSHOT_QTY=100
@@ -15,7 +19,6 @@ SNAPSHOTNAME=$(date "+simplesnap_%Y-%m-%d-%H:%M:%S")
 
 ###### Don't change below unless you know what you're doing ######
 ##################################################################
-
 echo "Starting Snapshot ${SNAPSHOTNAME}"
 echo "_____________________________________________________________"
 
@@ -33,6 +36,11 @@ for dataset in "${DATASETS[@]}"; do
     exit 1
   fi
 done
+
+# Add recursive datasets
+if $RECURSIVE; then
+  readarray -t DATASETS < <(zfs list ${DATASETS[@]} -r -H -o name)
+fi
 
 # Function to handle errors
 handle_error() {
